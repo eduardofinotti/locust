@@ -1,0 +1,46 @@
+from locust import HttpLocust, TaskSet, task
+import os
+
+token = "Bearer " + os.environ["TOKEN"]
+
+# RES
+def polling(l):
+    l.client.get(
+        url="/companies/11e7df2c-9aef-a80e-85d8-02ef04cb3aba/polling",
+        headers={
+                "Authorization": token 
+        },
+    )
+
+def companies(l):
+    l.client.get(
+        url = "/companies",
+        headers={
+                "Authorization": token
+        },
+    )
+
+def companiesOrders(l):
+    l.client.get(
+        url = "/companies/11e7df2c-9aef-a80e-85d8-02ef04cb3aba/orders",
+         headers={
+                "Authorization": token
+        },
+    )
+
+def stats(l):
+    polling(l)
+    companies(l)
+    companiesOrders(l)
+
+class UserTasks(TaskSet):
+    tasks = [polling, companies, companiesOrders]
+    
+class WebsiteUser(HttpLocust):
+    """
+    Locust user class that does requests to the locust web server running on localhost
+    """
+    host = "https://bffres.deliverymu.ch"
+    min_wait = 2000
+    max_wait = 5000
+    task_set = UserTasks    

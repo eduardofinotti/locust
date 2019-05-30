@@ -1,0 +1,52 @@
+from locust import HttpLocust, TaskSet, task
+
+token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZGVudGl0eSI6ImRlbGl2ZXJ5bXVjaCIsImV4cCI6MTU1MTEyMDYwOSwidXNlcl9jbGFpbXMiOnsiY29tcGFuaWVzIjpbIjExZTdkZjJjLTlhZWYtYTgwZS04NWQ4LTAyZWYwNGNiM2FiYSIsIjExZTdkZjJjLTlhZjAtNWNjYy04NWQ4LTAyZWYwNGNiM2FiYSIsIjExZTdkZjJjLTlhZjItOTE3Mi04NWQ4LTAyZWYwNGNiM2FiYSJdfSwidXNlcl90eXBlIjoiQURNSU5JU1RSQURPUiIsImlhdCI6MTU1MTExNzAwOX0.8VtBKhHLYwdVcYSVwovyV4HVZaD-vK4ZhkbGZ0_T7UU'  
+
+# RES
+# def login(l):
+#     response = l.client.post(
+#     url="/auth/login", 
+#     data=
+#         {"username":"deliverymuch", "password":"delivery123"}
+#     )
+#     body = response.json()
+#     l.token = body['access_token']
+
+#     print("Token:", l.token)
+
+@task(1)
+def companies(l):
+    bearer = 'Bearer ' + l.token
+    
+    response = l.client.get(
+    url="/companies", 
+    headers={
+                "Authorization": bearer
+            })
+    
+    print("Companies:", response.text)
+
+
+@task(2)
+def polling(self):
+    bearer = 'Bearer ' + self.token
+    
+    response = self.client.get(
+    url="/companies/11e7df2c-9af0-5ccc-85d8-02ef04cb3aba/polling", 
+    headers={
+                "Authorization": bearer
+            })
+    
+    print("Polling:", response.text)
+
+class UserBehavior(TaskSet):  
+    tasks = {polling, companies}
+    
+class WebsiteUser(HttpLocust):
+    """
+    Locust user class that does requests to the locust web server running on localhost
+    """
+    host = "https://bffres.deliverymu.ch"
+    min_wait = 2000
+    max_wait = 5000
+    task_set = UserBehavior    
